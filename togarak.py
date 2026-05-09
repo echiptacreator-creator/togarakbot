@@ -16,7 +16,8 @@ import sqlite3
 
 import asyncio
 import os
-import re
+from openpyxl import Workbook
+from aiogram.types import FSInputFile
 
 # =========================
 # CONFIG
@@ -691,7 +692,109 @@ async def statistics(message: Message):
     )
 
     await message.answer(text)
-            
+# =========================
+# RUN BOT
+# =========================            
+
+@dp.message(F.text == "/export_players")
+async def export_players(message: Message):
+
+    wb = Workbook()
+    ws = wb.active
+
+    ws.title = "Futbolchilar"
+
+    # Header
+    ws.append([
+        "ID",
+        "Ism",
+        "Tug‘ilgan yil",
+        "Tuman",
+        "Mahalla",
+        "Telefon",
+        "Qo‘shimcha"
+    ])
+
+    cursor.execute("""
+        SELECT
+            id,
+            full_name,
+            birth_year,
+            district,
+            mahalla,
+            parent_phone,
+            extra
+        FROM players
+    """)
+
+    players = cursor.fetchall()
+
+    for player in players:
+        ws.append(player)
+
+    file_name = "players.xlsx"
+
+    wb.save(file_name)
+
+    await message.answer_document(
+        FSInputFile(file_name),
+        caption="👦 Futbolchilar bazasi"
+    )
+
+@dp.message(F.text == "/export_coaches")
+async def export_coaches(message: Message):
+
+    wb = Workbook()
+    ws = wb.active
+
+    ws.title = "Murabbiylar"
+
+    ws.append([
+        "ID",
+        "Ism",
+        "Tug‘ilgan yil",
+        "Telefon",
+        "Telegram",
+        "Tuman",
+        "Mahalla",
+        "Tajriba",
+        "Guruh",
+        "Bolalar soni",
+        "Maydon",
+        "Qo‘shimcha"
+    ])
+
+    cursor.execute("""
+        SELECT
+            id,
+            full_name,
+            birth_year,
+            phone,
+            telegram,
+            district,
+            mahalla,
+            experience,
+            has_group,
+            players_count,
+            has_field,
+            extra
+        FROM coaches
+    """)
+
+    coaches = cursor.fetchall()
+
+    for coach in coaches:
+        ws.append(coach)
+
+    file_name = "coaches.xlsx"
+
+    wb.save(file_name)
+
+    await message.answer_document(
+        FSInputFile(file_name),
+        caption="🧑‍🏫 Murabbiylar bazasi"
+    )
+
 # =========================
 # RUN BOT
 # =========================
