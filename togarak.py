@@ -18,6 +18,7 @@ import asyncio
 import os
 from openpyxl import Workbook
 from aiogram.types import FSInputFile
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # =========================
 # CONFIG
@@ -896,7 +897,70 @@ async def delete_coach(message: Message):
         f"🗑 Murabbiy o‘chirildi: {coach_id}"
     )
 
+admin_menu = InlineKeyboardMarkup(
+    inline_keyboard=[
 
+        [
+            InlineKeyboardButton(
+                text="📊 Statistika",
+                callback_data="stats"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="👦 Futbolchilar",
+                callback_data="players_menu"
+            ),
+
+            InlineKeyboardButton(
+                text="🧑‍🏫 Murabbiylar",
+                callback_data="coaches_menu"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="📤 Export futbolchilar",
+                callback_data="export_players"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="📤 Export murabbiylar",
+                callback_data="export_coaches"
+            )
+        ]
+    ]
+)
+
+@dp.message(F.text == "/admin")
+async def admin_panel(message: Message):
+
+    await message.answer(
+        "⚙️ Admin panel",
+        reply_markup=admin_menu
+    )
+
+@dp.callback_query(F.data == "stats")
+async def stats_callback(callback):
+
+    cursor.execute("SELECT COUNT(*) FROM players")
+    players_count = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM coaches")
+    coaches_count = cursor.fetchone()[0]
+
+    text = (
+        f"📊 Statistikalar\n\n"
+        f"👦 Futbolchilar: {players_count}\n"
+        f"🧑‍🏫 Murabbiylar: {coaches_count}"
+    )
+
+    await callback.message.answer(text)
+
+    await callback.answer()
 
 # =========================
 # RUN BOT
