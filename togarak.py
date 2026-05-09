@@ -1,8 +1,4 @@
 from aiogram import Bot, Dispatcher, F
-
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.types import (
@@ -38,23 +34,6 @@ bot = Bot(
 
 dp = Dispatcher(storage=MemoryStorage())
 
-
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/drive"
-]
-
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "credentials.json",
-    scope
-)
-
-client = gspread.authorize(creds)
-
-sheet = client.open("Andijon FK Database")
-
-coaches_sheet = sheet.worksheet("Murabbiylar")
-players_sheet = sheet.worksheet("Bolalar")
 # =========================
 # KEYBOARDS
 # =========================
@@ -433,20 +412,6 @@ async def coach_finish(message: Message, state: FSMContext):
         f"🏟 Maydon: {data['has_field']}\n"
         f"📝 Qo‘shimcha: {data['extra']}"
     )
-
-    coaches_sheet.append_row([
-    data['full_name'],
-    data['birth_year'],
-    data['phone'],
-    data['telegram'],
-    data['district'],
-    data['mahalla'],
-    data['experience'],
-    data['has_group'],
-    data['players_count'],
-    data['has_field'],
-    data['extra']
-])
     
     await bot.send_message(
         chat_id=GROUP_CHAT_ID,
@@ -568,14 +533,6 @@ async def player_finish(message: Message, state: FSMContext):
         f"📝 Qo‘shimcha: {data['extra']}"
     )
 
-    players_sheet.append_row([
-    data['full_name'],
-    data['birth_year'],
-    data['district'],
-    data['mahalla'],
-    data['parent_phone'],
-    data['extra']
-])
 
     await bot.send_message(
         chat_id=GROUP_CHAT_ID,
