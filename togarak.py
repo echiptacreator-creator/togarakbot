@@ -741,15 +741,9 @@ async def import_old_messages(message: Message):
 
             conn.commit()
 
-            await message.answer(
-                f"✅ Futbolchi saqlandi:\n{name}"
-            )
-
         except Exception as e:
 
-            await message.answer(
-                f"❌ Bola import xato:\n{e}"
-            )
+            print(f"Bola import xato: {e}")
 
     # =========================
     # MURABBIY
@@ -806,15 +800,11 @@ async def import_old_messages(message: Message):
 
             conn.commit()
 
-            await message.answer(
-                f"✅ Murabbiy saqlandi:\n{name}"
-            )
 
         except Exception as e:
 
-            await message.answer(
-                f"❌ Murabbiy import xato:\n{e}"
-            )
+            print(f"Murabbiy import xato: {e}")
+            
 # =========================
 # RUN BOT
 # =========================
