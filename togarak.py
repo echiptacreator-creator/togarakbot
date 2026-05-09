@@ -491,7 +491,7 @@ async def coach_finish(message: Message, state: FSMContext):
         has_field,
         extra,
         photo
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         data['full_name'],
         data['birth_year'],
@@ -662,7 +662,7 @@ async def player_finish(message: Message, state: FSMContext):
         photo,
         parent_phone,
         extra
-    ) VALUES (?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
         data['full_name'],
         data['birth_year'],
