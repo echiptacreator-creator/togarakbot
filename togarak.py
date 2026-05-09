@@ -503,7 +503,7 @@ async def coach_finish(message: Message, state: FSMContext):
         data['has_group'],
         data['players_count'],
         data['has_field'],
-        data['extra']
+        data['extra'],
         data['photo']
     ))
     
@@ -669,7 +669,7 @@ async def player_finish(message: Message, state: FSMContext):
         data['district'],
         data['mahalla'],
         data['parent_phone'],
-        data['photo']
+        data['photo'],
         data['extra']
     ))
     
