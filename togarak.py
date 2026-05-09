@@ -153,6 +153,18 @@ contract_button = InlineKeyboardMarkup(
         ]
     ]
 )
+
+coach_contract_button = InlineKeyboardMarkup(
+    inline_keyboard=[
+
+        [
+            InlineKeyboardButton(
+                text="✅ Tanishdim va davom etaman",
+                callback_data="accept_coach_contract"
+            )
+        ]
+    ]
+)
 # =========================
 # STATES
 # =========================
@@ -332,14 +344,34 @@ async def coach_phone(message: Message, state: FSMContext):
 
     await state.update_data(phone=phone)
 
+    contract_file = FSInputFile(
+        "coach_contract.pdf"
+    )
+
+    await message.answer_document(
+        contract_file,
+        caption=(
+            "📄 Andijon FK murabbiylik hamkorlik shartnomasi\n\n"
+            "⚠️ Minimal hamkorlik muddati: 3 oy\n\n"
+            "Iltimos shartnoma bilan tanishib chiqing."
+        ),
+        reply_markup=coach_contract_button
+    )
+
+@dp.callback_query(F.data == "accept_coach_contract")
+async def accept_coach_contract(callback: CallbackQuery, state: FSMContext):
+
     await state.set_state(CoachForm.telegram)
 
-    await message.answer(
+    await callback.message.answer(
         "📋 4/9\n\n"
         "Telegram username (ixtiyoriy)\n"
         "Misol: @username",
         reply_markup=ReplyKeyboardRemove()
     )
+
+    await callback.answer()
+
 
 @dp.message(CoachForm.telegram)
 async def coach_telegram(message: Message, state: FSMContext):
