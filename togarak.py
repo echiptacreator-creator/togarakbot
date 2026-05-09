@@ -636,35 +636,57 @@ async def player_finish(message: Message, state: FSMContext):
 @dp.message(F.text == "/stat")
 async def statistics(message: Message):
 
+    # Umumiy futbolchilar
     cursor.execute("SELECT COUNT(*) FROM players")
     players_count = cursor.fetchone()[0]
 
+    # Umumiy murabbiylar
     cursor.execute("SELECT COUNT(*) FROM coaches")
     coaches_count = cursor.fetchone()[0]
 
+    # Futbolchilar hududlar bo‘yicha
     cursor.execute("""
         SELECT district, COUNT(*)
         FROM players
         GROUP BY district
-        ORDER BY COUNT(*) DESC
-        LIMIT 5
     """)
 
-    top_districts = cursor.fetchall()
+    players_by_district = cursor.fetchall()
 
-    districts_text = ""
+    # Murabbiylar hududlar bo‘yicha
+    cursor.execute("""
+        SELECT district, COUNT(*)
+        FROM coaches
+        GROUP BY district
+    """)
 
-    for index, district in enumerate(top_districts, start=1):
-        districts_text += (
-            f"{index}. {district[0]} — {district[1]}\n"
+    coaches_by_district = cursor.fetchall()
+
+    # Dictga o‘tkazamiz
+    players_dict = {district: count for district, count in players_by_district}
+    coaches_dict = {district: count for district, count in coaches_by_district}
+
+    # Barcha districtlarni birlashtiramiz
+    all_districts = set(players_dict.keys()) | set(coaches_dict.keys())
+
+    district_text = ""
+
+    for district in sorted(all_districts):
+
+        players = players_dict.get(district, 0)
+        coaches = coaches_dict.get(district, 0)
+
+        district_text += (
+            f"📍 <b>{district}</b>\n"
+            f"👦 Futbolchilar: {players}\n"
+            f"🧑‍🏫 Murabbiylar: {coaches}\n\n"
         )
 
     text = (
         f"📊 <b>Andijon FK Statistikasi</b>\n\n"
-        f"👦 Futbolchilar: {players_count}\n"
-        f"🧑‍🏫 Murabbiylar: {coaches_count}\n\n"
-        f"🏆 TOP hududlar:\n\n"
-        f"{districts_text}"
+        f"👦 Jami futbolchilar: {players_count}\n"
+        f"🧑‍🏫 Jami murabbiylar: {coaches_count}\n\n"
+        f"{district_text}"
     )
 
     await message.answer(text)
