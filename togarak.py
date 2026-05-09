@@ -35,7 +35,7 @@ bot = Bot(
 
 dp = Dispatcher(storage=MemoryStorage())
 
-conn = sqlite3.connect("database.db")
+conn = sqlite3.connect("/data/database.db")
 cursor = conn.cursor()
 
 
