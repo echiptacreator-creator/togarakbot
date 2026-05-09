@@ -43,6 +43,11 @@ dp = Dispatcher(storage=MemoryStorage())
 conn = sqlite3.connect("/data/database.db")
 cursor = conn.cursor()
 
+cursor.execute(
+    "ALTER TABLE players ADD COLUMN status TEXT DEFAULT '🟡 Yangi'"
+)
+
+conn.commit()
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS coaches (
@@ -1409,7 +1414,8 @@ async def player_detail(callback):
             district,
             mahalla,
             parent_phone,
-            extra
+            extra,
+            status
         FROM players
         WHERE id = ?
     """, (player_id,))
@@ -1427,19 +1433,55 @@ async def player_detail(callback):
         f"📍 {player[3]}\n"
         f"🏠 {player[4]}\n"
         f"📞 {player[5]}\n"
-        f"📝 {player[6]}"
+        f"📝 {player[6]}\n"
+        f"📌 Status: {player[7]}"
     )
-
+    
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-
+    
+            [
+                InlineKeyboardButton(
+                    text="📞 Aloqa qilindi",
+                    callback_data=f"status_called_{player[0]}"
+                )
+            ],
+    
+            [
+                InlineKeyboardButton(
+                    text="📄 Shartnoma",
+                    callback_data=f"status_contract_{player[0]}"
+                )
+            ],
+    
+            [
+                InlineKeyboardButton(
+                    text="⚽ Trial",
+                    callback_data=f"status_trial_{player[0]}"
+                )
+            ],
+    
+            [
+                InlineKeyboardButton(
+                    text="✅ Qabul qilindi",
+                    callback_data=f"status_accepted_{player[0]}"
+                )
+            ],
+    
+            [
+                InlineKeyboardButton(
+                    text="❌ Bekor qilindi",
+                    callback_data=f"status_cancel_{player[0]}"
+                )
+            ],
+    
             [
                 InlineKeyboardButton(
                     text="🗑 O‘chirish",
                     callback_data=f"delete_player_{player[0]}"
                 )
             ],
-
+    
             [
                 InlineKeyboardButton(
                     text="⬅️ Orqaga",
@@ -1617,6 +1659,35 @@ async def export_coaches_callback(callback):
 
     await callback.answer()
 
+
+@dp.callback_query(F.data.startswith("status_"))
+async def update_player_status(callback):
+
+    data = callback.data.split("_")
+
+    action = data[1]
+    player_id = data[2]
+
+    statuses = {
+        "called": "📞 Aloqa qilindi",
+        "contract": "📄 Shartnoma",
+        "trial": "⚽ Trial",
+        "accepted": "✅ Qabul qilindi",
+        "cancel": "❌ Bekor qilindi"
+    }
+
+    status = statuses.get(action)
+
+    cursor.execute(
+        "UPDATE players SET status = ? WHERE id = ?",
+        (status, player_id)
+    )
+
+    conn.commit()
+
+    await callback.answer(
+        "✅ Status yangilandi"
+    )
 # =========================
 # RUN BOT
 # =========================
