@@ -1021,7 +1021,10 @@ async def coaches_menu(callback):
     await callback.answer()
 
 
-@dp.callback_query(F.data.startswith("coach_"))
+@dp.callback_query(
+    F.data.startswith("coach_") &
+    ~F.data.startswith("coachdetail_")
+)
 async def district_coaches_callback(callback):
 
     district = callback.data.replace(
