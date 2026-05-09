@@ -806,7 +806,7 @@ async def district_players(message: Message):
     district = message.text.replace("/players ", "").strip()
 
     cursor.execute("""
-        SELECT full_name, birth_year, parent_phone
+        SELECT id, full_name, birth_year, parent_phone
         FROM players
         WHERE district LIKE ?
         ORDER BY id DESC
@@ -978,6 +978,107 @@ districts_inline = InlineKeyboardMarkup(
     ]
 )
 
+coaches_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+
+        [
+            InlineKeyboardButton(
+                text="Andijon shahri",
+                callback_data="coach_Andijon shahri"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="Asaka",
+                callback_data="coach_Asaka"
+            ),
+
+            InlineKeyboardButton(
+                text="Shahrixon",
+                callback_data="coach_Shahrixon"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="Izboskan",
+                callback_data="coach_Izboskan"
+            ),
+
+            InlineKeyboardButton(
+                text="Marhamat",
+                callback_data="coach_Marhamat"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="⬅️ Orqaga",
+                callback_data="back_admin"
+            )
+        ]
+    ]
+)
+
+@dp.callback_query(F.data == "coaches_menu")
+async def coaches_menu(callback):
+
+    await callback.message.edit_text(
+        "🧑‍🏫 Murabbiylar hududlari",
+        reply_markup=coaches_inline
+    )
+
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("coach_"))
+async def district_coaches_callback(callback):
+
+    district = callback.data.replace(
+        "coach_",
+        ""
+    )
+
+    cursor.execute("""
+        SELECT
+            id,
+            full_name,
+            phone,
+            experience
+        FROM coaches
+        WHERE district LIKE ?
+        ORDER BY id DESC
+    """, (f"%{district}%",))
+
+    coaches = cursor.fetchall()
+
+    if not coaches:
+
+        await callback.message.answer(
+            "❌ Murabbiy topilmadi"
+        )
+
+        return
+
+    text = (
+        f"🧑‍🏫 <b>{district}</b> murabbiylari:\n\n"
+    )
+
+    for coach in coaches[:20]:
+
+        text += (
+            f"🆔 {coach[0]}\n"
+            f"👤 {coach[1]}\n"
+            f"📞 {coach[2]}\n"
+            f"⚽ {coach[3][:80]}\n\n"
+        )
+
+    await callback.message.answer(text)
+
+    await callback.answer()
+
+
+
 @dp.callback_query(F.data == "players_menu")
 async def players_menu(callback):
 
@@ -998,7 +1099,7 @@ async def district_players_callback(callback):
     )
 
     cursor.execute("""
-        SELECT full_name, birth_year, parent_phone
+        SELECT id, full_name, birth_year, parent_phone
         FROM players
         WHERE district LIKE ?
         ORDER BY id DESC
@@ -1014,22 +1115,118 @@ async def district_players_callback(callback):
 
         return
 
-    text = (
-        f"👦 <b>{district}</b> futbolchilari:\n\n"
-    )
+    keyboard = []
 
     for player in players[:20]:
 
-        text += (
-            f"👤 {player[0]}\n"
-            f"📅 {player[1]}\n"
-            f"📞 {player[2]}\n\n"
-        )
+        keyboard.append([
+            InlineKeyboardButton(
+                text=f"{player[1]} ({player[2]})",
+                callback_data=f"player_{player[0]}"
+            )
+        ])
 
-    await callback.message.answer(text)
+    keyboard.append([
+        InlineKeyboardButton(
+            text="⬅️ Orqaga",
+            callback_data="players_menu"
+        )
+    ])
+
+    players_keyboard = InlineKeyboardMarkup(
+        inline_keyboard=keyboard
+    )
+
+    await callback.message.edit_text(
+        f"👦 {district} futbolchilari",
+        reply_markup=players_keyboard
+    )
 
     await callback.answer()
 
+@dp.callback_query(F.data.startswith("player_"))
+async def player_detail(callback):
+
+    player_id = callback.data.replace(
+        "player_",
+        ""
+    )
+
+    cursor.execute("""
+        SELECT
+            id,
+            full_name,
+            birth_year,
+            district,
+            mahalla,
+            parent_phone,
+            extra
+        FROM players
+        WHERE id = ?
+    """, (player_id,))
+
+    player = cursor.fetchone()
+
+    if not player:
+        return
+
+    text = (
+        f"👦 <b>Futbolchi ma'lumotlari</b>\n\n"
+        f"🆔 {player[0]}\n"
+        f"👤 {player[1]}\n"
+        f"📅 {player[2]}\n"
+        f"📍 {player[3]}\n"
+        f"🏠 {player[4]}\n"
+        f"📞 {player[5]}\n"
+        f"📝 {player[6]}"
+    )
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+
+            [
+                InlineKeyboardButton(
+                    text="🗑 O‘chirish",
+                    callback_data=f"delete_player_{player[0]}"
+                )
+            ],
+
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Orqaga",
+                    callback_data=f"players_{player[3]}"
+                )
+            ]
+        ]
+    )
+
+    await callback.message.edit_text(
+        text,
+        reply_markup=keyboard
+    )
+
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("delete_player_"))
+async def delete_player_button(callback):
+
+    player_id = callback.data.replace(
+        "delete_player_",
+        ""
+    )
+
+    cursor.execute(
+        "DELETE FROM players WHERE id = ?",
+        (player_id,)
+    )
+
+    conn.commit()
+
+    await callback.message.edit_text(
+        "🗑 Futbolchi o‘chirildi"
+    )
+
+    await callback.answer()
 
 @dp.callback_query(F.data == "back_admin")
 async def back_admin(callback):
