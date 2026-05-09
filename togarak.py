@@ -632,6 +632,42 @@ async def player_finish(message: Message, state: FSMContext):
 
     await state.clear()
 
+
+@dp.message(F.text == "/stat")
+async def statistics(message: Message):
+
+    cursor.execute("SELECT COUNT(*) FROM players")
+    players_count = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM coaches")
+    coaches_count = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT district, COUNT(*)
+        FROM players
+        GROUP BY district
+        ORDER BY COUNT(*) DESC
+        LIMIT 5
+    """)
+
+    top_districts = cursor.fetchall()
+
+    districts_text = ""
+
+    for index, district in enumerate(top_districts, start=1):
+        districts_text += (
+            f"{index}. {district[0]} — {district[1]}\n"
+        )
+
+    text = (
+        f"📊 <b>Andijon FK Statistikasi</b>\n\n"
+        f"👦 Futbolchilar: {players_count}\n"
+        f"🧑‍🏫 Murabbiylar: {coaches_count}\n\n"
+        f"🏆 TOP hududlar:\n\n"
+        f"{districts_text}"
+    )
+
+    await message.answer(text)
 # =========================
 # RUN BOT
 # =========================
