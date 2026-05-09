@@ -22,7 +22,7 @@ import os
 
 # =========================
 
-TOKEN = "8569432045:AAF8VoWoF3o5ajje4G3iQwHpPX00BgzlAEkN"
+TOKEN = os.getenv("BOT_TOKEN")
 GROUP_CHAT_ID = -1003947220682
 
 COACH_TOPIC_ID = 2
