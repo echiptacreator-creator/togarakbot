@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS coaches (
     full_name TEXT,
     birth_year TEXT,
     phone TEXT,
+    photo TEXT,
     telegram TEXT,
     district TEXT,
     mahalla TEXT,
@@ -66,6 +67,7 @@ CREATE TABLE IF NOT EXISTS players (
     birth_year TEXT,
     district TEXT,
     mahalla TEXT,
+    photo TEXT,
     parent_phone TEXT,
     extra TEXT
 )
@@ -145,6 +147,7 @@ class CoachForm(StatesGroup):
     full_name = State()
     birth_year = State()
     phone = State()
+    photo = State()
     telegram = State()
     district = State()
     mahalla = State()
@@ -159,6 +162,7 @@ class PlayerForm(StatesGroup):
     birth_year = State()
     district = State()
     mahalla = State()
+    photo = State()
     parent_phone = State()
     extra = State()
 
@@ -417,6 +421,28 @@ async def coach_players(message: Message, state: FSMContext):
 async def coach_field(message: Message, state: FSMContext):
 
     await state.update_data(has_field=message.text)
+    
+    await state.set_state(CoachForm.photo)
+    
+    await message.answer(
+        "📸 O‘zingizning rasmingizni yuboring",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+@dp.message(CoachForm.photo)
+async def coach_photo(message: Message, state: FSMContext):
+
+    if not message.photo:
+
+        await message.answer(
+            "📸 Rasm yuboring"
+        )
+
+        return
+
+    photo_id = message.photo[-1].file_id
+
+    await state.update_data(photo=photo_id)
 
     await state.set_state(CoachForm.extra)
 
@@ -463,7 +489,8 @@ async def coach_finish(message: Message, state: FSMContext):
         has_group,
         players_count,
         has_field,
-        extra
+        extra,
+        photo
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         data['full_name'],
@@ -477,13 +504,15 @@ async def coach_finish(message: Message, state: FSMContext):
         data['players_count'],
         data['has_field'],
         data['extra']
+        data['photo']
     ))
     
     conn.commit()
     
-    await bot.send_message(
+    await bot.send_photo(
         chat_id=GROUP_CHAT_ID,
-        text=admin_text,
+        photo=data['photo'],
+        caption=admin_text,
         message_thread_id=COACH_TOPIC_ID
     )
 
@@ -573,6 +602,29 @@ async def player_phone(message: Message, state: FSMContext):
 
     await state.update_data(parent_phone=phone)
 
+
+    await state.set_state(PlayerForm.photo)
+
+    await message.answer(
+        "📸 Futbolchi rasmini yuboring",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+@dp.message(PlayerForm.photo)
+async def player_photo(message: Message, state: FSMContext):
+
+    if not message.photo:
+
+        await message.answer(
+            "📸 Rasm yuboring"
+        )
+
+        return
+
+    photo_id = message.photo[-1].file_id
+
+    await state.update_data(photo=photo_id)
+
     await state.set_state(PlayerForm.extra)
 
     await message.answer(
@@ -607,6 +659,7 @@ async def player_finish(message: Message, state: FSMContext):
         birth_year,
         district,
         mahalla,
+        photo,
         parent_phone,
         extra
     ) VALUES (?, ?, ?, ?, ?, ?)
@@ -616,14 +669,16 @@ async def player_finish(message: Message, state: FSMContext):
         data['district'],
         data['mahalla'],
         data['parent_phone'],
+        data['photo']
         data['extra']
     ))
     
     conn.commit()
 
-    await bot.send_message(
+    await bot.send_photo(
         chat_id=GROUP_CHAT_ID,
-        text=admin_text,
+        photo=data['photo'],
+        caption=admin_text,
         message_thread_id=PLAYER_TOPIC_ID
     )
 
