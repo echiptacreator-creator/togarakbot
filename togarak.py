@@ -12,6 +12,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
+import sqlite3
 
 import asyncio
 import os
@@ -34,6 +35,40 @@ bot = Bot(
 
 dp = Dispatcher(storage=MemoryStorage())
 
+conn = sqlite3.connect("database.db")
+cursor = conn.cursor()
+
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS coaches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT,
+    birth_year TEXT,
+    phone TEXT,
+    telegram TEXT,
+    district TEXT,
+    mahalla TEXT,
+    experience TEXT,
+    has_group TEXT,
+    players_count TEXT,
+    has_field TEXT,
+    extra TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS players (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT,
+    birth_year TEXT,
+    district TEXT,
+    mahalla TEXT,
+    parent_phone TEXT,
+    extra TEXT
+)
+""")
+
+conn.commit()
 # =========================
 # KEYBOARDS
 # =========================
@@ -412,6 +447,36 @@ async def coach_finish(message: Message, state: FSMContext):
         f"🏟 Maydon: {data['has_field']}\n"
         f"📝 Qo‘shimcha: {data['extra']}"
     )
+
+    cursor.execute("""
+    INSERT INTO coaches (
+        full_name,
+        birth_year,
+        phone,
+        telegram,
+        district,
+        mahalla,
+        experience,
+        has_group,
+        players_count,
+        has_field,
+        extra
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        data['full_name'],
+        data['birth_year'],
+        data['phone'],
+        data['telegram'],
+        data['district'],
+        data['mahalla'],
+        data['experience'],
+        data['has_group'],
+        data['players_count'],
+        data['has_field'],
+        data['extra']
+    ))
+    
+    conn.commit()
     
     await bot.send_message(
         chat_id=GROUP_CHAT_ID,
@@ -533,6 +598,25 @@ async def player_finish(message: Message, state: FSMContext):
         f"📝 Qo‘shimcha: {data['extra']}"
     )
 
+    cursor.execute("""
+    INSERT INTO players (
+        full_name,
+        birth_year,
+        district,
+        mahalla,
+        parent_phone,
+        extra
+    ) VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        data['full_name'],
+        data['birth_year'],
+        data['district'],
+        data['mahalla'],
+        data['parent_phone'],
+        data['extra']
+    ))
+    
+    conn.commit()
 
     await bot.send_message(
         chat_id=GROUP_CHAT_ID,
