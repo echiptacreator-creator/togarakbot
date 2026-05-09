@@ -253,10 +253,10 @@ async def contacts(message: Message):
 
     text = (
         "<b>📞 Aloqa</b>\n\n"
-        "📱 Telefon: +998 XX XXX XX XX\n"
+        "📱 Telefon: +998884727772\n"
         "📍 Manzil: Andijon\n"
-        "📲 Telegram: @username\n"
-        "📸 Instagram: @username"
+        "📲 Telegram: @khamilofff\n"
+        "📸 Instagram: instagram.com/@malades.bola"
     )
 
     await message.answer(text)
@@ -691,119 +691,6 @@ async def statistics(message: Message):
     )
 
     await message.answer(text)
-
-
-@dp.message()
-async def import_old_messages(message: Message):
-
-    text = message.text
-
-    if not text:
-        return
-
-    # =========================
-    # FUTBOLCHI
-    # =========================
-
-    if "👦 Yangi bola ro‘yxatdan o‘tdi" in text:
-
-        try:
-
-            name = re.search(r"👤 Ism: (.+)", text).group(1)
-            birth = re.search(r"📅 Tug‘ilgan yil: (.+)", text).group(1)
-            location = re.search(r"📍 Hudud: (.+)", text).group(1)
-            phone = re.search(r"📞 Ota-ona: (.+)", text).group(1)
-            extra = re.search(r"📝 Qo‘shimcha: (.+)", text).group(1)
-
-            if "/" in location:
-                district, mahalla = location.split("/", 1)
-            else:
-                district = location
-                mahalla = ""
-
-            cursor.execute("""
-            INSERT INTO players (
-                full_name,
-                birth_year,
-                district,
-                mahalla,
-                parent_phone,
-                extra
-            ) VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                name.strip(),
-                birth.strip(),
-                district.strip(),
-                mahalla.strip(),
-                phone.strip(),
-                extra.strip()
-            ))
-
-            conn.commit()
-
-        except Exception as e:
-
-            print(f"Bola import xato: {e}")
-
-    # =========================
-    # MURABBIY
-    # =========================
-
-    elif "🔔 Yangi murabbiy arizasi" in text:
-
-        try:
-
-            name = re.search(r"👤 Ism: (.+)", text).group(1)
-            birth = re.search(r"📅 Tug‘ilgan yil: (.+)", text).group(1)
-            phone = re.search(r"📞 Telefon: (.+)", text).group(1)
-            telegram = re.search(r"📲 Telegram: (.+)", text).group(1)
-            location = re.search(r"📍 Hudud: (.+)", text).group(1)
-            experience = re.search(r"⚽ Tajriba: ([\s\S]*?)👥 Guruh:", text).group(1)
-            group = re.search(r"👥 Guruh: (.+)", text).group(1)
-            players = re.search(r"👦 Bolalar soni: (.+)", text).group(1)
-            field = re.search(r"🏟 Maydon: (.+)", text).group(1)
-            extra = re.search(r"📝 Qo‘shimcha: ([\s\S]*)", text).group(1)
-
-            if "/" in location:
-                district, mahalla = location.split("/", 1)
-            else:
-                district = location
-                mahalla = ""
-
-            cursor.execute("""
-            INSERT INTO coaches (
-                full_name,
-                birth_year,
-                phone,
-                telegram,
-                district,
-                mahalla,
-                experience,
-                has_group,
-                players_count,
-                has_field,
-                extra
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                name.strip(),
-                birth.strip(),
-                phone.strip(),
-                telegram.strip(),
-                district.strip(),
-                mahalla.strip(),
-                experience.strip(),
-                group.strip(),
-                players.strip(),
-                field.strip(),
-                extra.strip()
-            ))
-
-            conn.commit()
-
-
-        except Exception as e:
-
-            print(f"Murabbiy import xato: {e}")
             
 # =========================
 # RUN BOT
