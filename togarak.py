@@ -799,6 +799,109 @@ async def export_coaches(message: Message):
 # RUN BOT
 # =========================
 
+@dp.message(F.text.startswith("/players "))
+async def district_players(message: Message):
+
+    district = message.text.replace("/players ", "").strip()
+
+    cursor.execute("""
+        SELECT full_name, birth_year, parent_phone
+        FROM players
+        WHERE district LIKE ?
+        ORDER BY id DESC
+    """, (f"%{district}%",))
+
+    players = cursor.fetchall()
+
+    if not players:
+        await message.answer("❌ Futbolchilar topilmadi")
+        return
+
+    text = f"👦 <b>{district}</b> futbolchilari:\n\n"
+
+    for player in players:
+
+        text += (
+            f"👤 {player[0]}\n"
+            f"📅 {player[1]}\n"
+            f"📞 {player[2]}\n\n"
+        )
+
+    await message.answer(text)
+
+@dp.message(F.text.startswith("/coaches "))
+async def district_coaches(message: Message):
+
+    district = message.text.replace("/coaches ", "").strip()
+
+    cursor.execute("""
+        SELECT full_name, phone
+        FROM coaches
+        WHERE district LIKE ?
+        ORDER BY id DESC
+    """, (f"%{district}%",))
+
+    coaches = cursor.fetchall()
+
+    if not coaches:
+        await message.answer("❌ Murabbiy topilmadi")
+        return
+
+    text = f"🧑‍🏫 <b>{district}</b> murabbiylari:\n\n"
+
+    for coach in coaches:
+
+        text += (
+            f"👤 {coach[0]}\n"
+            f"📞 {coach[1]}\n\n"
+        )
+
+    await message.answer(text)
+
+@dp.message(F.text.startswith("/delete_player "))
+async def delete_player(message: Message):
+
+    player_id = message.text.replace(
+        "/delete_player ",
+        ""
+    ).strip()
+
+    cursor.execute(
+        "DELETE FROM players WHERE id = ?",
+        (player_id,)
+    )
+
+    conn.commit()
+
+    await message.answer(
+        f"🗑 Futbolchi o‘chirildi: {player_id}"
+    )
+
+@dp.message(F.text.startswith("/delete_coach "))
+async def delete_coach(message: Message):
+
+    coach_id = message.text.replace(
+        "/delete_coach ",
+        ""
+    ).strip()
+
+    cursor.execute(
+        "DELETE FROM coaches WHERE id = ?",
+        (coach_id,)
+    )
+
+    conn.commit()
+
+    await message.answer(
+        f"🗑 Murabbiy o‘chirildi: {coach_id}"
+    )
+
+
+
+# =========================
+# RUN BOT
+# =========================
+
 async def main():
 
     print("Bot ishga tushdi...")
