@@ -935,6 +935,113 @@ admin_menu = InlineKeyboardMarkup(
     ]
 )
 
+districts_inline = InlineKeyboardMarkup(
+    inline_keyboard=[
+
+        [
+            InlineKeyboardButton(
+                text="Andijon shahri",
+                callback_data="players_Andijon shahri"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="Asaka",
+                callback_data="players_Asaka"
+            ),
+
+            InlineKeyboardButton(
+                text="Shahrixon",
+                callback_data="players_Shahrixon"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="Izboskan",
+                callback_data="players_Izboskan"
+            ),
+
+            InlineKeyboardButton(
+                text="Marhamat",
+                callback_data="players_Marhamat"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                text="⬅️ Orqaga",
+                callback_data="back_admin"
+            )
+        ]
+    ]
+)
+
+@dp.callback_query(F.data == "players_menu")
+async def players_menu(callback):
+
+    await callback.message.edit_text(
+        "👦 Futbolchilar hududlari",
+        reply_markup=districts_inline
+    )
+
+    await callback.answer()
+
+
+@dp.callback_query(F.data.startswith("players_"))
+async def district_players_callback(callback):
+
+    district = callback.data.replace(
+        "players_",
+        ""
+    )
+
+    cursor.execute("""
+        SELECT full_name, birth_year, parent_phone
+        FROM players
+        WHERE district LIKE ?
+        ORDER BY id DESC
+    """, (f"%{district}%",))
+
+    players = cursor.fetchall()
+
+    if not players:
+
+        await callback.message.answer(
+            "❌ Futbolchilar topilmadi"
+        )
+
+        return
+
+    text = (
+        f"👦 <b>{district}</b> futbolchilari:\n\n"
+    )
+
+    for player in players[:20]:
+
+        text += (
+            f"👤 {player[0]}\n"
+            f"📅 {player[1]}\n"
+            f"📞 {player[2]}\n\n"
+        )
+
+    await callback.message.answer(text)
+
+    await callback.answer()
+
+
+@dp.callback_query(F.data == "back_admin")
+async def back_admin(callback):
+
+    await callback.message.edit_text(
+        "⚙️ Admin panel",
+        reply_markup=admin_menu
+    )
+
+    await callback.answer()
+
+
 @dp.message(F.text == "/admin")
 async def admin_panel(message: Message):
 
