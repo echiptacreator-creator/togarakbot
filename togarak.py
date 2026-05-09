@@ -19,6 +19,8 @@ import os
 from openpyxl import Workbook
 from aiogram.types import FSInputFile
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import FSInputFile
+from aiogram.types import CallbackQuery
 
 # =========================
 # CONFIG
@@ -149,6 +151,18 @@ skip_button = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
+
+contract_button = InlineKeyboardMarkup(
+    inline_keyboard=[
+
+        [
+            InlineKeyboardButton(
+                text="✅ Tanishdim va davom etaman",
+                callback_data="accept_contract"
+            )
+        ]
+    ]
+)
 # =========================
 # STATES
 # =========================
@@ -612,13 +626,31 @@ async def player_phone(message: Message, state: FSMContext):
 
     await state.update_data(parent_phone=phone)
 
+    contract_file = FSInputFile(
+        "contract.pdf"
+    )
+
+    await message.answer_document(
+        contract_file,
+        caption=(
+            "📄 3 tomonlama shartnoma namunasi\n\n"
+            "⚠️ Minimal muddat: 3 oy\n\n"
+            "Iltimos shartnoma bilan tanishib chiqing."
+        ),
+        reply_markup=contract_button
+    )
+
+@dp.callback_query(F.data == "accept_contract")
+async def accept_contract(callback: CallbackQuery, state: FSMContext):
 
     await state.set_state(PlayerForm.photo)
 
-    await message.answer(
+    await callback.message.answer(
         "📸 Futbolchi rasmini yuboring",
         reply_markup=ReplyKeyboardRemove()
     )
+
+    await callback.answer()
 
 @dp.message(PlayerForm.photo)
 async def player_photo(message: Message, state: FSMContext):
