@@ -44,16 +44,6 @@ conn = sqlite3.connect("/data/database.db")
 cursor = conn.cursor()
 
 
-cursor.execute(
-    "ALTER TABLE coaches ADD COLUMN photo TEXT"
-)
-
-cursor.execute(
-    "ALTER TABLE players ADD COLUMN photo TEXT"
-)
-
-conn.commit()
-
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS coaches (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
