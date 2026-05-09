@@ -1020,6 +1020,7 @@ async def coaches_menu(callback):
 
     await callback.answer()
 
+
 @dp.callback_query(F.data.startswith("coach_"))
 async def district_coaches_callback(callback):
 
@@ -1078,11 +1079,11 @@ async def district_coaches_callback(callback):
 
     await callback.answer()
 
-@dp.callback_query(F.data.startswith("coach_"))
-async def district_coaches_callback(callback):
+@dp.callback_query(F.data.startswith("coachdetail_"))
+async def coach_detail(callback):
 
-    district = callback.data.replace(
-        "coach_",
+    coach_id = callback.data.replace(
+        "coachdetail_",
         ""
     )
 
@@ -1090,48 +1091,63 @@ async def district_coaches_callback(callback):
         SELECT
             id,
             full_name,
+            birth_year,
             phone,
-            experience
+            telegram,
+            district,
+            mahalla,
+            experience,
+            has_group,
+            players_count,
+            has_field,
+            extra
         FROM coaches
-        WHERE district LIKE ?
-        ORDER BY id DESC
-    """, (f"%{district}%",))
+        WHERE id = ?
+    """, (coach_id,))
 
-    coaches = cursor.fetchall()
+    coach = cursor.fetchone()
 
-    if not coaches:
-
-        await callback.message.answer(
-            "❌ Murabbiy topilmadi"
-        )
-
+    if not coach:
         return
 
-    keyboard = []
+    text = (
+        f"🧑‍🏫 <b>Murabbiy ma'lumotlari</b>\n\n"
+        f"🆔 {coach[0]}\n"
+        f"👤 {coach[1]}\n"
+        f"📅 {coach[2]}\n"
+        f"📞 {coach[3]}\n"
+        f"📲 {coach[4]}\n"
+        f"📍 {coach[5]}\n"
+        f"🏠 {coach[6]}\n"
+        f"⚽ {coach[7]}\n"
+        f"👥 Guruh: {coach[8]}\n"
+        f"👦 Bolalar: {coach[9]}\n"
+        f"🏟 Maydon: {coach[10]}\n"
+        f"📝 {coach[11]}"
+    )
 
-    for coach in coaches[:20]:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
 
-        keyboard.append([
-            InlineKeyboardButton(
-                text=f"{coach[1]}",
-                callback_data=f"coachdetail_{coach[0]}"
-            )
-        ])
+            [
+                InlineKeyboardButton(
+                    text="🗑 O‘chirish",
+                    callback_data=f"delete_coach_{coach[0]}"
+                )
+            ],
 
-    keyboard.append([
-        InlineKeyboardButton(
-            text="⬅️ Orqaga",
-            callback_data="coaches_menu"
-        )
-    ])
-
-    coaches_keyboard = InlineKeyboardMarkup(
-        inline_keyboard=keyboard
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Orqaga",
+                    callback_data=f"coach_{coach[5]}"
+                )
+            ]
+        ]
     )
 
     await callback.message.edit_text(
-        f"🧑‍🏫 {district} murabbiylari",
-        reply_markup=coaches_keyboard
+        text,
+        reply_markup=keyboard
     )
 
     await callback.answer()
