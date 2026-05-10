@@ -1485,7 +1485,7 @@ async def player_detail(callback):
             [
                 InlineKeyboardButton(
                     text="⬅️ Orqaga",
-                    callback_data=f"players_{player[3]}"
+                    callback_data="players_menu"
                 )
             ]
         ]
