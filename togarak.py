@@ -1316,12 +1316,12 @@ async def players_menu(callback):
 
     keyboard = []
 
-    for district in districts:
+    for index, district in enumerate(districts):
 
         keyboard.append([
             InlineKeyboardButton(
                 text=f"{district[0]} ({district[1]})",
-                callback_data=f"players_{district[0]}"
+                callback_data=f"players_{index}"
             )
         ])
 
@@ -1336,28 +1336,34 @@ async def players_menu(callback):
         inline_keyboard=keyboard
     )
 
+    # districtlarni memoryga saqlaymiz
+    dp["players_districts"] = districts
+
     await callback.message.edit_text(
         "👦 Futbolchilar hududlari",
         reply_markup=players_keyboard
     )
 
     await callback.answer()
-
+    
 
 @dp.callback_query(F.data.startswith("players_"))
 async def district_players_callback(callback):
 
-    district = callback.data.replace(
-        "players_",
-        ""
+    index = int(
+        callback.data.replace("players_", "")
     )
+
+    districts = dp["players_districts"]
+
+    district = districts[index][0]
 
     cursor.execute("""
         SELECT id, full_name, birth_year, parent_phone
         FROM players
-        WHERE district LIKE ?
+        WHERE district = ?
         ORDER BY id DESC
-    """, (f"%{district}%",))
+    """, (district,))
 
     players = cursor.fetchall()
 
